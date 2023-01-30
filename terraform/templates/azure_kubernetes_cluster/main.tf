@@ -4,13 +4,13 @@
 
 
 locals {
-    scope = lower(var.scope)
+  scope = lower(var.scope)
 }
 
 resource "azurerm_resource_group" "this" {
   name     = "rg-aks-${local.scope}"
   location = var.location
-  tags = var.tags
+  tags     = var.tags
 }
 
 resource "azurerm_virtual_network" "this" {
@@ -24,9 +24,9 @@ resource "azurerm_virtual_network" "this" {
 
 # Remainder of firewall configureation is located in firewall.tf
 resource "azurerm_subnet" "firewall" {
-  name                                           = "AzureFirewallSubnet"
-  resource_group_name                            = azurerm_resource_group.this.name
-  virtual_network_name                           = azurerm_virtual_network.this.name
-  address_prefixes                               = ["10.0.1.0/26"]
-  enforce_private_link_endpoint_network_policies = false
+  name                                      = "AzureFirewallSubnet"
+  resource_group_name                       = azurerm_resource_group.this.name
+  virtual_network_name                      = azurerm_virtual_network.this.name
+  address_prefixes                          = ["10.0.1.0/26"]
+  private_endpoint_network_policies_enabled = false
 }
