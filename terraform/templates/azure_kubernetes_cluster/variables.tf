@@ -15,8 +15,14 @@ variable "tags" {
     default = {}
 }
 
-variable "vnet_address_space" {
-    type = list(string)
-    description = "Address space to dedicate for the virtual network."
-    default = ["10.1.0.0/16"]
+variable "firewall_sku_name" {
+    type = string
+    description = "Sku name to create the firewall with."
+    default = "AZFW_VNet"
+}
+
+variable "firewall_sku_tier" {
+    type = string
+    description = "Sku tier to create the firewall with."
+    default = "Standard"
 }
