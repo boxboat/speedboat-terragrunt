@@ -30,3 +30,13 @@ resource "azurerm_subnet" "firewall" {
   address_prefixes                          = ["10.0.1.0/26"]
   private_endpoint_network_policies_enabled = false
 }
+
+resource "azurerm_subnet" "aks" {
+  name                                           = "aksSubnet"
+  resource_group_name                            = azurerm_resource_group.this.name
+  virtual_network_name                           = azurerm_virtual_network.this.name
+  address_prefixes                               = ["10.0.16.0/20"]
+  private_endpoint_network_policies_enabled = true
+
+}
+

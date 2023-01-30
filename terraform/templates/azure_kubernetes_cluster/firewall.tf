@@ -55,7 +55,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "aks" {
         type = "Https"
         port = 443
       }
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_fqdn_tags = ["AzureKubnernetesService"]
     }
   }
@@ -67,35 +67,35 @@ resource "azurerm_firewall_policy_rule_collection_group" "aks" {
     rule {
       name                  = "https"
       protocols             = ["TCP"]
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_addresses = ["*"]
       destination_ports     = ["443"]
     }
     rule {
       name                  = "dns"
       protocols             = ["UDP"]
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_addresses = ["*"]
       destination_ports     = ["53"]
     }
     rule {
       name                  = "time"
       protocols             = ["UDP"]
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_addresses = ["*"]
       destination_ports     = ["123"]
     }
     rule {
       name                  = "tunnel_udp"
       protocols             = ["UDP"]
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_addresses = ["*"]
       destination_ports     = ["1194"]
     }
     rule {
       name                  = "tunnel_tcp"
       protocols             = ["TCP"]
-      source_addresses      = ["10.2.0.0/24"]
+      source_addresses      = ["10.0.16.0/20"]
       destination_addresses = ["*"]
       destination_ports     = ["9000"]
     }
