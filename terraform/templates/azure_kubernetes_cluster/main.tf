@@ -2,10 +2,12 @@
 # "this" is used when it is the only resource of this type included in the template
 # therefore no unique identifier is necessary.
 
-
 locals {
   scope = lower(var.scope)
+  safe_scope = replace(local.scope, "-", "")
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "this" {
   name     = "rg-aks-${local.scope}"
@@ -31,12 +33,128 @@ resource "azurerm_subnet" "firewall" {
   private_endpoint_network_policies_enabled = false
 }
 
+resource "azurerm_subnet" "appgw" {
+  name                                             = "appgwSubnet"
+  resource_group_name                              = azurerm_resource_group.this.name
+  virtual_network_name                             = azurerm_virtual_network.this.name
+  address_prefixes                                 = ["10.0.2.0/24"]
+}
+
 resource "azurerm_subnet" "aks" {
   name                                           = "aksSubnet"
   resource_group_name                            = azurerm_resource_group.this.name
   virtual_network_name                           = azurerm_virtual_network.this.name
   address_prefixes                               = ["10.0.16.0/20"]
   private_endpoint_network_policies_enabled = true
-
 }
 
+resource "azurerm_log_analytics_workspace" "this" {
+  name                = "law-${local.scope}"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+# ACR name must be globally unique
+resource "random_uuid" "acr" {}
+
+resource "azurerm_container_registry" "this" {
+  name                          = "acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}"
+  resource_group_name           = azurerm_resource_group.this.name
+  location                      = azurerm_resource_group.this.location
+  sku                           = "Standard"
+  public_network_access_enabled = true
+  admin_enabled                 = false
+}
+
+resource "azurerm_key_vault" "this" {
+  name                        = "kv-${local.scope}"
+  location                    = azurerm_resource_group.this.location
+  resource_group_name         = azurerm_resource_group.this.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+  sku_name                    = "standard"
+}
+
+resource "azurerm_kubernetes_cluster" "this" {
+  name                    = "aks-${local.scope}"
+  location = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  azure_policy_enabled    = true
+  kubernetes_version      = "1.24"
+  node_resource_group = "${azurerm_resource_group.this.name}-managed"
+  private_cluster_enabled = false
+  private_cluster_public_fqdn_enabled = false
+  dns_prefix = local.scope
+
+  # TODO
+  ingress_application_gateway {
+    gateway_id = azurerm_application_gateway.this.id
+  }
+
+  # TODO
+  oms_agent {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  }
+
+  default_node_pool {
+    name            = "defaultpool"
+    vm_size         = "Standard_DS2_v2"
+    os_disk_size_gb = 30
+    type            = "VirtualMachineScaleSets"
+    node_count      = 3
+    vnet_subnet_id  = azurerm_subnet.aks.id
+
+    tags = var.tags
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    outbound_type      = "userDefinedRouting"
+    dns_service_ip     = "192.168.100.10"
+    service_cidr       = "192.168.100.0/24"
+    docker_bridge_cidr = "172.16.1.1/30"
+  }
+
+  role_based_access_control_enabled = true
+
+  azure_active_directory_role_based_access_control {
+    managed = true
+    azure_rbac_enabled = true
+  }
+
+  identity {
+    type         = "SystemAssigned"
+  }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled = false
+  }
+
+  tags = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool[0].node_count
+    ]
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "aks_keyvault_policy" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_kubernetes_cluster.this.identity.0.principal_id
+
+  secret_permissions = [
+    "Get", "List"
+  ]
+}
+
+resource "azurerm_role_assignment" "aks_acrpull" {
+  scope                = azurerm_container_registry.this.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_kubernetes_cluster.this.identity.0.principal_id
+}
