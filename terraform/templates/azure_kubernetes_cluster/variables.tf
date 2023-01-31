@@ -26,3 +26,10 @@ variable "firewall_sku_tier" {
     description = "Sku tier to create the firewall with."
     default = "Standard"
 }
+
+# don't have access to AzureAD, so falling back on per user provisioning
+variable "full_admin_users" {
+    type = list(string)
+    description = "Email addresses of users to provision full admin access"
+    default = []
+}

@@ -158,3 +158,49 @@ resource "azurerm_role_assignment" "aks_acrpull" {
   role_definition_name = "AcrPull"
   principal_id         = azurerm_kubernetes_cluster.this.identity.0.principal_id
 }
+
+data "azuread_user" "admins" {
+  for_each = toset(var.full_admin_users)
+  user_principal_name = each.value
+}
+
+locals {
+  admin_users = {for user in data.azuread_user.admins : user.user_principal_name => user.object_id }
+}
+
+resource "azurerm_role_assignment" "user_acrpush" {
+  for_each = local.admin_users 
+  scope = azurerm_container_registry.this.id
+  role_definition_name = "AcrPush"
+  principal_id = each.value
+}
+
+resource "azurerm_role_assignment" "user_acrpull" {
+  for_each = local.admin_users 
+  scope = azurerm_container_registry.this.id
+  role_definition_name = "AcrPull"
+  principal_id = each.value
+
+}
+
+resource "azurerm_role_assignment" "user_aks_cluster_admin" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this.id
+  role_definition_name = "Azure Kubernetes Service Cluster Admin Role"
+  principal_id = each.value
+}
+
+resource "azurerm_role_assignment" "user_aks_rbac_admin" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this.id
+  role_definition_name = "Azure Kubernetes Service RBAC Admin"
+  principal_id = each.value
+
+}
+
+resource "azurerm_role_assignment" "user_aks_rbac_cluster_admin" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this.id
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id = each.value
+}
