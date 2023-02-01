@@ -48,6 +48,14 @@ resource "azurerm_subnet" "aks" {
   private_endpoint_network_policies_enabled = true
 }
 
+resource "azurerm_subnet" "aks2" {
+  name                                           = "aksSubnet2"
+  resource_group_name                            = azurerm_resource_group.this.name
+  virtual_network_name                           = azurerm_virtual_network.this.name
+  address_prefixes                               = ["10.0.32.0/20"]
+  private_endpoint_network_policies_enabled = true
+}
+
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "law-${local.scope}"
   resource_group_name = azurerm_resource_group.this.name
@@ -105,7 +113,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size         = "Standard_DS2_v2"
     os_disk_size_gb = 30
     type            = "VirtualMachineScaleSets"
-    node_count      = 3
+    node_count      = 2
     vnet_subnet_id  = azurerm_subnet.aks.id
 
     tags = var.tags
@@ -201,6 +209,108 @@ resource "azurerm_role_assignment" "user_aks_rbac_admin" {
 resource "azurerm_role_assignment" "user_aks_rbac_cluster_admin" {
   for_each = local.admin_users 
   scope = azurerm_kubernetes_cluster.this.id
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id = each.value
+}
+
+resource "azurerm_kubernetes_cluster" "this2" {
+  name                    = "aks-${local.scope}2"
+  location = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  azure_policy_enabled    = true
+  kubernetes_version      = "1.24"
+  node_resource_group = "${azurerm_resource_group.this.name}-managed2"
+  private_cluster_enabled = false
+  private_cluster_public_fqdn_enabled = false
+  dns_prefix = local.scope
+
+  # TODO
+  ingress_application_gateway {
+    gateway_id = azurerm_application_gateway.this.id
+  }
+
+  # TODO
+  oms_agent {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  }
+
+  default_node_pool {
+    name            = "defaultpool"
+    vm_size         = "Standard_DS2_v2"
+    os_disk_size_gb = 30
+    type            = "VirtualMachineScaleSets"
+    node_count      = 2
+    vnet_subnet_id  = azurerm_subnet.aks2.id
+
+    tags = var.tags
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    outbound_type      = "userDefinedRouting"
+    dns_service_ip     = "192.168.100.10"
+    service_cidr       = "192.168.100.0/24"
+    docker_bridge_cidr = "172.16.1.1/30"
+  }
+
+  role_based_access_control_enabled = true
+
+  azure_active_directory_role_based_access_control {
+    managed = true
+    azure_rbac_enabled = true
+  }
+
+  identity {
+    type         = "SystemAssigned"
+  }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled = false
+  }
+
+  tags = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool[0].node_count
+    ]
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "aks_keyvault_policy2" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_kubernetes_cluster.this2.identity.0.principal_id
+
+  secret_permissions = [
+    "Get", "List"
+  ]
+}
+
+resource "azurerm_role_assignment" "aks_acrpull2" {
+  scope                = azurerm_container_registry.this.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_kubernetes_cluster.this2.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "user_aks_cluster_admin2" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this2.id
+  role_definition_name = "Azure Kubernetes Service Cluster Admin Role"
+  principal_id = each.value
+}
+
+resource "azurerm_role_assignment" "user_aks_rbac_admin2" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this2.id
+  role_definition_name = "Azure Kubernetes Service RBAC Admin"
+  principal_id = each.value
+
+}
+
+resource "azurerm_role_assignment" "user_aks_rbac_cluster_admin2" {
+  for_each = local.admin_users 
+  scope = azurerm_kubernetes_cluster.this2.id
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   principal_id = each.value
 }
