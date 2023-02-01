@@ -60,36 +60,36 @@ module "spoke_virtual_network" {
 #   private_endpoint_network_policies_enabled = true
 # }
 
-# resource "azurerm_log_analytics_workspace" "this" {
-#   name                = "law-${local.scope}"
-#   resource_group_name = azurerm_resource_group.this.name
-#   location            = azurerm_resource_group.this.location
-#   sku                 = "PerGB2018"
-#   retention_in_days   = 30
-# }
+resource "azurerm_log_analytics_workspace" "this" {
+  name                = "law-${local.scope}"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 
 # # ACR name must be globally unique
-# resource "random_uuid" "acr" {}
+resource "random_uuid" "acr" {}
 
-# resource "azurerm_container_registry" "this" {
-#   name                          = "acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}"
-#   resource_group_name           = azurerm_resource_group.this.name
-#   location                      = azurerm_resource_group.this.location
-#   sku                           = "Standard"
-#   public_network_access_enabled = true
-#   admin_enabled                 = false
-# }
+resource "azurerm_container_registry" "this" {
+  name                          = "acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}"
+  resource_group_name           = azurerm_resource_group.this.name
+  location                      = azurerm_resource_group.this.location
+  sku                           = "Standard"
+  public_network_access_enabled = true
+  admin_enabled                 = false
+}
 
-# resource "azurerm_key_vault" "this" {
-#   name                        = "kv-${local.scope}"
-#   location                    = azurerm_resource_group.this.location
-#   resource_group_name         = azurerm_resource_group.this.name
-#   enabled_for_disk_encryption = true
-#   tenant_id                   = data.azurerm_client_config.current.tenant_id
-#   soft_delete_retention_days  = 7
-#   purge_protection_enabled    = false
-#   sku_name                    = "standard"
-# }
+resource "azurerm_key_vault" "this" {
+  name                        = "kv-${local.scope}"
+  location                    = azurerm_resource_group.this.location
+  resource_group_name         = azurerm_resource_group.this.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+  sku_name                    = "standard"
+}
 
 # module "application_gateway" {
 #   source = "../application_gateway"
