@@ -3,10 +3,14 @@ variable "scope" {
     description = "Identifier added as a suffix to resource names."
 }
 
+variable "resource_group_name" {
+    type = string
+    description = "Resource group to place virtual network within."
+}
+
 variable "location" {
     type = string
-    description = "Region for resources to created in."
-    default = "eastus"
+    description = "Region for resources to be created in."
 }
 
 variable "tags" {
@@ -25,13 +29,6 @@ variable "firewall_sku_tier" {
     type = string
     description = "Sku tier to create the firewall with."
     default = "Standard"
-}
-
-# don't have access to AzureAD, so falling back on per user provisioning
-variable "full_admin_users" {
-    type = list(string)
-    description = "Email addresses of users to provision full admin access"
-    default = []
 }
 
 variable "address_space" {

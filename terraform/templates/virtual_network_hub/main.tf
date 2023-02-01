@@ -15,7 +15,7 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
-resource "azurerm_virtual_network" "vnet" {
+resource "azurerm_virtual_network" "this" {
   name                = "vnet-${var.location}-${local.scope}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
