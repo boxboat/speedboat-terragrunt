@@ -44,21 +44,21 @@ module "spoke_virtual_network" {
 #   address_prefixes                          = ["10.0.1.0/26"]
 #   private_endpoint_network_policies_enabled = false
 # }
-#---------------
-# resource "azurerm_subnet" "appgw" {
-#   name                                             = "appgwSubnet"
-#   resource_group_name                              = module.spoke_virtual_network.virtual_network.resource_group_name
-#   virtual_network_name                             = module.spoke_virtual_network.virtual_network.name
-#   address_prefixes                                 = ["10.0.2.0/24"]
-# }
 
-# resource "azurerm_subnet" "aks" {
-#   name                                           = "aksSubnet"
-#   resource_group_name                            = module.spoke_virtual_network.virtual_network.resource_group_name
-#   virtual_network_name                           = module.spoke_virtual_network.virtual_network.name
-#   address_prefixes                               = ["10.0.16.0/20"]
-#   private_endpoint_network_policies_enabled = true
-# }
+resource "azurerm_subnet" "appgw" {
+  name                                             = "appgwSubnet"
+  resource_group_name                              = module.spoke_virtual_network.virtual_network.resource_group_name
+  virtual_network_name                             = module.spoke_virtual_network.virtual_network.name
+  address_prefixes                                 = var.app_gateway_address_space
+}
+
+resource "azurerm_subnet" "aks" {
+  name                                           = "aksSubnet"
+  resource_group_name                            = module.spoke_virtual_network.virtual_network.resource_group_name
+  virtual_network_name                           = module.spoke_virtual_network.virtual_network.name
+  address_prefixes                               = var.aks_address_space
+  private_endpoint_network_policies_enabled = true
+}
 
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "law-${local.scope}"

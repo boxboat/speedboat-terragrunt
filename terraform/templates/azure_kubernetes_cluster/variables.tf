@@ -40,6 +40,18 @@ variable "address_space" {
     default = ["10.1.0.0/16"]
 }
 
+variable "app_gateway_address_space" {
+    type = list(string)
+    description = "Address space to be allocated for the virtual network"
+    default = ["10.1.2.0/24"]
+}
+
+variable "aks_address_space" {
+    type = list(string)
+    description = "Address space to be allocated for the virtual network"
+    default = ["10.1.16.0/20"]
+}
+
 variable "virtual_network_hub_name" {
     type = string
     description = "Network hub name to be peered with."
