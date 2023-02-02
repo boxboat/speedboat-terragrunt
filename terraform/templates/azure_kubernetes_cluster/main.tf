@@ -314,3 +314,15 @@ resource "azurerm_role_assignment" "user_aks_rbac_cluster_admin2" {
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   principal_id = each.value
 }
+
+resource "azurerm_role_assignment" "aks_vnet" {
+  scope = azurerm_virtual_network.this.id
+  role_definition_name = "Network Contributor"
+  principal_id = azurerm_kubernetes_cluster.this.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "aks2_vnet" {
+  scope = azurerm_virtual_network.this.id
+  role_definition_name = "Network Contributor"
+  principal_id = azurerm_kubernetes_cluster.this2.identity.0.principal_id
+}
