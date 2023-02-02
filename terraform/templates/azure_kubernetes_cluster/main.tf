@@ -91,13 +91,14 @@ resource "azurerm_key_vault" "this" {
   sku_name                    = "standard"
 }
 
-# module "application_gateway" {
-#   source = "../application_gateway"
-#   resource_group_name = azurerm_resource_group.this.name
-#   location = azurerm_resource_group.this.location
-#   subnet_id = azurerm_subnet.appgw.id
-#   virtual_network_name = module.spoke_virtual_network.virtual_network.name
-# }
+module "application_gateway" {
+  source = "../application_gateway"
+  resource_group_name = azurerm_resource_group.this.name
+  location = azurerm_resource_group.this.location
+  scope = local.scope
+  subnet_id = azurerm_subnet.appgw.id
+  virtual_network_name = module.spoke_virtual_network.virtual_network.name
+}
 
 # resource "azurerm_kubernetes_cluster" "this" {
 #   name                    = "aks-${local.scope}"

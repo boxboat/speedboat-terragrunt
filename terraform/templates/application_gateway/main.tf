@@ -1,5 +1,5 @@
 resource "azurerm_network_security_group" "appgw-nsg" {
-  name                = "appgw-nsg-${local.scope}"
+  name                = "appgw-nsg-${var.scope}"
   resource_group_name = var.resource_group_name
   location            = var.location
 }
@@ -80,7 +80,7 @@ resource "azurerm_subnet_network_security_group_association" "appgwsubnet" {
 }
 
 resource "azurerm_public_ip" "appgw" {
-  name                = "appgw-pip-${local.scope}"
+  name                = "appgw-pip-${var.scope}"
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
@@ -98,7 +98,7 @@ locals {
 }
 
 resource "azurerm_application_gateway" "this" {
-  name                = "appgtw-${local.scope}"
+  name                = "appgtw-${var.scope}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

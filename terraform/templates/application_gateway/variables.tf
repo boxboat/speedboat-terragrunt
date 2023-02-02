@@ -17,3 +17,8 @@ variable "virtual_network_name" {
     type = string
     description = "Name of the virtual network the application gateway is using."
 }
+
+variable "scope" {
+    type = string
+    description = "Identifier added as a suffix to resource names."
+}
