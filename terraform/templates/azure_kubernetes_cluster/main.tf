@@ -139,7 +139,8 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   default_node_pool {
     name            = "defaultpool"
-    vm_size         = "Standard_DS2_v2"
+    # vm_size         = "Standard_DS2_v2"
+    vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
     type            = "VirtualMachineScaleSets"
     node_count      = 3
@@ -150,7 +151,7 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   network_profile {
     network_plugin     = "azure"
-    outbound_type      = "userDefinedRouting"
+    # outbound_type      = "userDefinedRouting"
     dns_service_ip     = "192.168.100.10"
     service_cidr       = "192.168.100.0/24"
     docker_bridge_cidr = "172.16.1.1/30"
