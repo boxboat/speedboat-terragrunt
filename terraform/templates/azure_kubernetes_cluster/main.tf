@@ -27,24 +27,6 @@ module "spoke_virtual_network" {
   virtual_network_hub_id = var.virtual_network_hub_id
 }
 
-# resource "azurerm_virtual_network" "this" {
-#   name                = "vnet-${local.scope}"
-#   resource_group_name = azurerm_resource_group.this.name
-#   location            = azurerm_resource_group.this.location
-#   address_space       = ["10.0.0.0/16"]
-#   dns_servers         = null
-#   tags                = var.tags
-# }
-# 
-# # Remainder of firewall configureation is located in firewall.tf
-# resource "azurerm_subnet" "firewall" {
-#   name                                      = "AzureFirewallSubnet"
-#   resource_group_name                       = azurerm_resource_group.this.name
-#   virtual_network_name                      = azurerm_virtual_network.this.name
-#   address_prefixes                          = ["10.0.1.0/26"]
-#   private_endpoint_network_policies_enabled = false
-# }
-
 resource "azurerm_subnet" "appgw" {
   name                                             = "appgwSubnet"
   resource_group_name                              = module.spoke_virtual_network.virtual_network.resource_group_name
@@ -65,12 +47,6 @@ resource "azurerm_route_table" "route_table" {
   resource_group_name           = azurerm_resource_group.this.name
   location                      = azurerm_resource_group.this.location
   disable_bgp_route_propagation = false
-
-  # route {
-  #   name                   = "default_aks"
-  #   address_prefix         = "0.0.0.0/0"
-  #   next_hop_type          = "None"
-  # }
 }
 
 resource "azurerm_subnet_route_table_association" "rt_association" {
@@ -139,7 +115,6 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   default_node_pool {
     name            = "defaultpool"
-    # vm_size         = "Standard_DS2_v2"
     vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
     type            = "VirtualMachineScaleSets"
@@ -151,7 +126,6 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   network_profile {
     network_plugin     = "azure"
-    # outbound_type      = "userDefinedRouting"
     dns_service_ip     = "192.168.100.10"
     service_cidr       = "192.168.100.0/24"
     docker_bridge_cidr = "172.16.1.1/30"

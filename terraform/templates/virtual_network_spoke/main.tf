@@ -14,20 +14,6 @@ resource "azurerm_virtual_network" "this" {
 
 }
 
-# resource "azurerm_route_table" "route_table" {
-#   name                          = "rt-${var.lz_prefix}"
-#   resource_group_name           = azurerm_resource_group.spoke-rg.name
-#   location                      = azurerm_resource_group.spoke-rg.location
-#   disable_bgp_route_propagation = false
-
-#   route {
-#     name                   = "route_to_firewall"
-#     address_prefix         = "0.0.0.0/0"
-#     next_hop_type          = "VirtualAppliance"
-#     next_hop_in_ip_address = "10.0.1.4"
-#   }
-# }
-
 # Spoke to Hub
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   name                         = "${azurerm_virtual_network.this.name}-to-${var.virtual_network_hub_name}"
