@@ -118,7 +118,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
     type            = "VirtualMachineScaleSets"
-    node_count      = 3
+    node_count      = 2
     vnet_subnet_id  = azurerm_subnet.aks.id
 
     tags = var.tags
