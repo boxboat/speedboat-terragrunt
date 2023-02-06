@@ -1,11 +1,11 @@
 resource "azurerm_network_security_group" "appgw-nsg" {
-  name                = "appgw-nsg-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = "appgw-nsg-${var.scope}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
 }
 
 resource "azurerm_network_security_rule" "inboundhttps" {
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.appgw-nsg.name
   name                        = "Allow443InBound"
   priority                    = 100
@@ -19,7 +19,7 @@ resource "azurerm_network_security_rule" "inboundhttps" {
 }
 
 resource "azurerm_network_security_rule" "inboundhttp" {
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.appgw-nsg.name
   name                        = "Allow80InBound"
   priority                    = 105
@@ -33,7 +33,7 @@ resource "azurerm_network_security_rule" "inboundhttp" {
 }
 
 resource "azurerm_network_security_rule" "controlplane" {
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.appgw-nsg.name
   name                        = "AllowControlPlane"
   priority                    = 110
@@ -47,7 +47,7 @@ resource "azurerm_network_security_rule" "controlplane" {
 }
 
 resource "azurerm_network_security_rule" "healthprobes" {
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.appgw-nsg.name
   name                        = "AllowHealthProbes"
   priority                    = 120
@@ -61,7 +61,7 @@ resource "azurerm_network_security_rule" "healthprobes" {
 }
 
 resource "azurerm_network_security_rule" "DenyAllInBound" {
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.appgw-nsg.name
   name                        = "DenyAllInBound"
   priority                    = 1000
@@ -75,32 +75,32 @@ resource "azurerm_network_security_rule" "DenyAllInBound" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "appgwsubnet" {
-  subnet_id                 = azurerm_subnet.appgw.id
+  subnet_id                 = var.subnet_id
   network_security_group_id = azurerm_network_security_group.appgw-nsg.id
 }
 
 resource "azurerm_public_ip" "appgw" {
-  name                = "appgw-pip-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = "appgw-pip-${var.scope}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.this.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.this.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.this.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.this.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.this.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.this.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.this.name}-rdrcfg"
+  backend_address_pool_name      = "${var.virtual_network_name}-beap"
+  frontend_port_name             = "${var.virtual_network_name}-feport"
+  frontend_ip_configuration_name = "${var.virtual_network_name}-feip"
+  http_setting_name              = "${var.virtual_network_name}-be-htst"
+  listener_name                  = "${var.virtual_network_name}-httplstn"
+  request_routing_rule_name      = "${var.virtual_network_name}-rqrt"
+  redirect_configuration_name    = "${var.virtual_network_name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "this" {
-  name                = "appgtw-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = "appgtw-${var.scope}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   sku {
     name     = "Standard_v2"
@@ -110,7 +110,7 @@ resource "azurerm_application_gateway" "this" {
 
   gateway_ip_configuration {
     name      = "app-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.appgw.id
+    subnet_id = var.subnet_id
   }
 
   frontend_port {
