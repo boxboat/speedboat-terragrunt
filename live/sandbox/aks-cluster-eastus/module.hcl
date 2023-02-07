@@ -9,5 +9,5 @@ locals {
     ]
     address_space = ["10.1.0.0/16"]
     app_gateway_address_space = ["10.1.2.0/24"]
-    aks_address_spae = ["10.1.16.0/20"]
+    aks_address_space = ["10.1.16.0/20"]
 }
