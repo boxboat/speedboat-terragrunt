@@ -66,7 +66,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 resource "random_uuid" "acr" {}
 
 resource "azurerm_container_registry" "this" {
-  name                          = "acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}"
+  name                          = substr("acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}", 0, 49)
   resource_group_name           = azurerm_resource_group.this.name
   location                      = azurerm_resource_group.this.location
   sku                           = "Standard"
