@@ -1,7 +1,6 @@
 locals {
     tags = {
         Owner = "Will Schultz"
-        Environment = "Development"
     }
     scope = "tools-cluster"
     full_admin_users = [

@@ -1,7 +1,6 @@
 locals {
     tags = {
         Owner = "Will Schultz"
-        Environment = "Development"
     }
     scope = "microservices-host"
     full_admin_users = [
