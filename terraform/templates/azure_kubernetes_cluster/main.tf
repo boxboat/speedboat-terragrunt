@@ -162,12 +162,16 @@ module "application_gateway" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
+locals {
+  kubernetes_version = "1.24"
+}
+
 resource "azurerm_kubernetes_cluster" "this" {
   name                    = "aks-${local.scope}"
   location = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   azure_policy_enabled    = true
-  kubernetes_version      = "1.24"
+  kubernetes_version      = local.kubernetes_version
   node_resource_group = "${azurerm_resource_group.this.name}-managed"
   private_cluster_enabled = false
   private_cluster_public_fqdn_enabled = false
@@ -186,7 +190,8 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
     type            = "VirtualMachineScaleSets"
-    node_count      = 2
+    node_count      = 3
+    only_critical_addons_enabled = true
     vnet_subnet_id  = azurerm_subnet.aks.id
 
     tags = var.tags
@@ -221,6 +226,16 @@ resource "azurerm_kubernetes_cluster" "this" {
       default_node_pool[0].node_count
     ]
   }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "user_pool" {
+  name = "userpool"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  vm_size = "Standard_D2s_v3"
+  node_count = 3
+  orchestrator_version = local.kubernetes_version
+  vnet_subnet_id = azurerm_subnet.aks.id
+  tags = var.tags
 }
 
 data "azurerm_monitor_diagnostic_categories" "aks" {
