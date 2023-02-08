@@ -15,6 +15,14 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
+resource "azurerm_log_analytics_workspace" "this" {
+  name                = "law-${local.scope}"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 module "spoke_virtual_network" {
   source = "../virtual_network_spoke"
   resource_group_name = azurerm_resource_group.this.name
@@ -25,6 +33,7 @@ module "spoke_virtual_network" {
   virtual_network_hub_name = var.virtual_network_hub_name
   virtual_network_hub_resource_group_name = var.virtual_network_hub_resource_group_name
   virtual_network_hub_id = var.virtual_network_hub_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 resource "azurerm_subnet" "appgw" {
@@ -54,14 +63,6 @@ resource "azurerm_subnet_route_table_association" "rt_association" {
   route_table_id = azurerm_route_table.route_table.id
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  name                = "law-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
 # # ACR name must be globally unique
 resource "random_uuid" "acr" {}
 
@@ -72,6 +73,39 @@ resource "azurerm_container_registry" "this" {
   sku                           = "Standard"
   public_network_access_enabled = true
   admin_enabled                 = false
+}
+
+data "azurerm_monitor_diagnostic_categories" "acr" {
+  resource_id = azurerm_container_registry.this.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "acr" {
+  name = azurerm_container_registry.this.name
+  target_resource_id = azurerm_container_registry.this.id
+
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.acr.log_category_types
+    content {
+      category = enabled_log.key
+      retention_policy {
+        days = 30
+        enabled = true
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.acr.metrics
+    content {
+      category = metric.key
+      retention_policy {
+        days = 30
+        enabled =true
+      }
+    }
+  }
 }
 
 resource "azurerm_key_vault" "this" {
@@ -85,6 +119,39 @@ resource "azurerm_key_vault" "this" {
   sku_name                    = "standard"
 }
 
+data "azurerm_monitor_diagnostic_categories" "kv" {
+  resource_id = azurerm_key_vault.this.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "kv" {
+  name = azurerm_key_vault.this.name
+  target_resource_id = azurerm_key_vault.this.id
+
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.kv.log_category_types
+    content {
+      category = enabled_log.key
+      retention_policy {
+        days = 30
+        enabled = true
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.kv.metrics
+    content {
+      category = metric.key
+      retention_policy {
+        days = 30
+        enabled =true
+      }
+    }
+  }
+}
+
 module "application_gateway" {
   source = "../application_gateway"
   resource_group_name = azurerm_resource_group.this.name
@@ -92,6 +159,7 @@ module "application_gateway" {
   scope = local.scope
   subnet_id = azurerm_subnet.appgw.id
   virtual_network_name = module.spoke_virtual_network.virtual_network.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 resource "azurerm_kubernetes_cluster" "this" {
@@ -152,6 +220,39 @@ resource "azurerm_kubernetes_cluster" "this" {
     ignore_changes = [
       default_node_pool[0].node_count
     ]
+  }
+}
+
+data "azurerm_monitor_diagnostic_categories" "aks" {
+  resource_id = azurerm_kubernetes_cluster.this.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "this" {
+  name = azurerm_kubernetes_cluster.this.name
+  target_resource_id = azurerm_kubernetes_cluster.this.id
+
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.aks.log_category_types
+    content {
+      category = enabled_log.key
+      retention_policy {
+        days = 30
+        enabled = true
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.aks.metrics
+    content {
+      category = metric.key
+      retention_policy {
+        days = 30
+        enabled =true
+      }
+    }
   }
 }
 

@@ -45,11 +45,14 @@ variable "virtual_network_hub_name" {
 variable "virtual_network_hub_resource_group_name" {
     type = string
     description = "Resource group of network hub to peer with."
-    default = null
 }
 
 variable "virtual_network_hub_id" {
     type = string
     description = "Id of network hub to peer with."
-    default = null
+}
+
+variable "log_analytics_workspace_id" {
+    type = string
+    description = "Id of log analytics workspace to send logs to."
 }

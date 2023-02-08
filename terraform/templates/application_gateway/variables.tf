@@ -22,3 +22,8 @@ variable "scope" {
     type = string
     description = "Identifier added as a suffix to resource names."
 }
+
+variable "log_analytics_workspace_id" {
+    type = string
+    description = "Id of log analytics workspace to send logs to."
+}

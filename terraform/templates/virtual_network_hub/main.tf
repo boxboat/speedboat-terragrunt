@@ -42,11 +42,10 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  dynamic "log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.this.logs
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.this.log_category_types
     content {
-      category = log.key
-      enabled = true
+      category = enabled_log.key
       retention_policy {
         days = 30
         enabled = true
