@@ -37,3 +37,36 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   allow_gateway_transit        = false
   use_remote_gateways          = false
 }
+
+data "azurerm_monitor_diagnostic_categories" "this" {
+  resource_id = azurerm_virtual_network.this.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "this" {
+  name = azurerm_virtual_network.this.name
+  target_resource_id = azurerm_virtual_network.this.id
+
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.this.log_category_types
+    content {
+      category = enabled_log.key
+      retention_policy {
+        days = 30
+        enabled = true
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.this.metrics
+    content {
+      category = metric.key
+      retention_policy {
+        days = 30
+        enabled =true
+      }
+    }
+  }
+}

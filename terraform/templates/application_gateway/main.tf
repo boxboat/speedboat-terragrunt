@@ -158,3 +158,36 @@ resource "azurerm_application_gateway" "this" {
     priority                   = 1 //priority arguement required as of 3.6.0 release. 1 is the highest priority and 20000 is the lowest priority.
   }
 }
+
+data "azurerm_monitor_diagnostic_categories" "this" {
+  resource_id = azurerm_application_gateway.this.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "this" {
+  name = azurerm_application_gateway.this.name
+  target_resource_id = azurerm_application_gateway.this.id
+
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.this.log_category_types
+    content {
+      category = enabled_log.key
+      retention_policy {
+        days = 30
+        enabled = true
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.this.metrics
+    content {
+      category = metric.key
+      retention_policy {
+        days = 30
+        enabled =true
+      }
+    }
+  }
+}
