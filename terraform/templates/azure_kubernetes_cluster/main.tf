@@ -66,7 +66,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 resource "random_uuid" "acr" {}
 
 resource "azurerm_container_registry" "this" {
-  name                          = "acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}"
+  name                          = substr("acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}", 0, 49)
   resource_group_name           = azurerm_resource_group.this.name
   location                      = azurerm_resource_group.this.location
   sku                           = "Standard"
@@ -75,7 +75,7 @@ resource "azurerm_container_registry" "this" {
 }
 
 resource "azurerm_key_vault" "this" {
-  name                        = "kv-${local.scope}"
+  name                        = substr("kv-${local.scope}", 0, 23)
   location                    = azurerm_resource_group.this.location
   resource_group_name         = azurerm_resource_group.this.name
   enabled_for_disk_encryption = true
