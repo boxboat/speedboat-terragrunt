@@ -5,6 +5,7 @@
 locals {
   scope = lower(var.scope)
   safe_scope = replace(local.scope, "-", "")
+  configure_acr_private_endpoint = var.container_registry_private_dns_zone_id != null ? true : false
 }
 
 data "azurerm_client_config" "current" {}
@@ -51,6 +52,14 @@ resource "azurerm_subnet" "aks" {
   private_endpoint_network_policies_enabled = true
 }
 
+resource "azurerm_subnet" "acr" {
+  name                                           = "acrSubnet"
+  resource_group_name                            = module.spoke_virtual_network.virtual_network.resource_group_name
+  virtual_network_name                           = module.spoke_virtual_network.virtual_network.name
+  address_prefixes                               = var.acr_address_space
+  private_endpoint_network_policies_enabled = true
+}
+
 resource "azurerm_route_table" "route_table" {
   name                          = "rt-${local.scope}"
   resource_group_name           = azurerm_resource_group.this.name
@@ -70,9 +79,28 @@ resource "azurerm_container_registry" "this" {
   name                          = substr("acr${local.safe_scope}${replace(random_uuid.acr.result, "-", "")}", 0, 49)
   resource_group_name           = azurerm_resource_group.this.name
   location                      = azurerm_resource_group.this.location
-  sku                           = "Standard"
+  sku                           = "Premium"
   public_network_access_enabled = true
   admin_enabled                 = false
+}
+
+resource "azurerm_private_endpoint" "acr" {
+  for_each = local.configure_acr_private_endpoint ? toset(["enabled"]) : []
+  name = "pve-${azurerm_container_registry.this.name}"
+  resource_group_name = azurerm_resource_group.this.name
+  location = azurerm_resource_group.this.location
+  subnet_id = azurerm_subnet.acr.id
+  private_dns_zone_group {
+    name = "pvzg-${azurerm_container_registry.this.name}"
+    private_dns_zone_ids = [var.container_registry_private_dns_zone_id]
+  }
+  private_service_connection {
+    name = "psc-${azurerm_container_registry.this.name}"
+    is_manual_connection = false    
+    private_connection_resource_id = azurerm_container_registry.this.id
+    subresource_names = ["registry"]
+  }
+  tags = var.tags
 }
 
 data "azurerm_monitor_diagnostic_categories" "acr" {

@@ -34,6 +34,7 @@ inputs = merge(
         virtual_network_hub_name = dependency.vnet_hub.outputs.virtual_network.name
         virtual_network_hub_resource_group_name = dependency.vnet_hub.outputs.virtual_network.resource_group_name
         virtual_network_hub_id = dependency.vnet_hub.outputs.virtual_network.id
+        container_registry_private_dns_zone_id = dependency.vnet_hub.outputs.acr_private_dns_zone.id
         tags = merge(
             local.global_vars.locals.tags,
             local.subscription_vars.locals.tags,
