@@ -48,8 +48,14 @@ variable "app_gateway_address_space" {
 
 variable "acr_address_space" {
     type = list(string)
-    description = "Address space to be allocated for the virtual network"
+    description = "Address space to be allocated for azure container registry"
     default = ["10.1.3.0/24"]
+}
+
+variable "kv_address_space" {
+    type = list(string)
+    description = "Address space to be allocated for key vault"
+    default = ["10.1.4.0/24"]
 }
 
 variable "aks_address_space" {
@@ -78,5 +84,11 @@ variable "virtual_network_hub_id" {
 variable "container_registry_private_dns_zone_id" {
     type = string
     description = "Id of private dns zone for azure container registry"
+    default = null
+}
+
+variable "key_vault_private_dns_zone_id" {
+    type = string
+    description = "Id of private dns zone for key vault"
     default = null
 }

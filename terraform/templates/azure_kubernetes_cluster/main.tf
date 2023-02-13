@@ -6,6 +6,7 @@ locals {
   scope = lower(var.scope)
   safe_scope = replace(local.scope, "-", "")
   configure_acr_private_endpoint = var.container_registry_private_dns_zone_id != null ? true : false
+  configure_kv_private_endpoint = var.key_vault_private_dns_zone_id != null ? true : false
 }
 
 data "azurerm_client_config" "current" {}
@@ -57,6 +58,14 @@ resource "azurerm_subnet" "acr" {
   resource_group_name                            = module.spoke_virtual_network.virtual_network.resource_group_name
   virtual_network_name                           = module.spoke_virtual_network.virtual_network.name
   address_prefixes                               = var.acr_address_space
+  private_endpoint_network_policies_enabled = true
+}
+
+resource "azurerm_subnet" "kv" {
+  name                                           = "kvSubnet"
+  resource_group_name                            = module.spoke_virtual_network.virtual_network.resource_group_name
+  virtual_network_name                           = module.spoke_virtual_network.virtual_network.name
+  address_prefixes                               = var.kv_address_space
   private_endpoint_network_policies_enabled = true
 }
 
@@ -145,6 +154,25 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
   sku_name                    = "standard"
+}
+
+resource "azurerm_private_endpoint" "kv" {
+  for_each = local.configure_kv_private_endpoint ? toset(["enabled"]) : []
+  name = "pve-${azurerm_key_vault.this.name}"
+  resource_group_name = azurerm_resource_group.this.name
+  location = azurerm_resource_group.this.location
+  subnet_id = azurerm_subnet.kv.id
+  private_dns_zone_group {
+    name = "pvzg-${azurerm_key_vault.this.name}"
+    private_dns_zone_ids = [var.key_vault_private_dns_zone_id]
+  }
+  private_service_connection {
+    name = "psc-${azurerm_key_vault.this.name}"
+    is_manual_connection = false    
+    private_connection_resource_id = azurerm_key_vault.this.id
+    subresource_names = ["vault"]
+  }
+  tags = var.tags
 }
 
 data "azurerm_monitor_diagnostic_categories" "kv" {

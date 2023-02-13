@@ -13,4 +13,5 @@ locals {
     app_gateway_address_space = ["10.2.2.0/24"]
     aks_address_space = ["10.2.16.0/20"]
     acr_address_space = ["10.2.3.0/24"]
+    kv_address_space = ["10.2.4.0/24"]
 }
