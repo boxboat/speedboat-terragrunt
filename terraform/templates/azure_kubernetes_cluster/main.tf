@@ -112,38 +112,38 @@ resource "azurerm_private_endpoint" "acr" {
   tags = var.tags
 }
 
-data "azurerm_monitor_diagnostic_categories" "acr" {
-  resource_id = azurerm_container_registry.this.id
-}
+# data "azurerm_monitor_diagnostic_categories" "acr" {
+#   resource_id = azurerm_container_registry.this.id
+# }
 
-resource "azurerm_monitor_diagnostic_setting" "acr" {
-  name = azurerm_container_registry.this.name
-  target_resource_id = azurerm_container_registry.this.id
+# resource "azurerm_monitor_diagnostic_setting" "acr" {
+#   name = azurerm_container_registry.this.name
+#   target_resource_id = azurerm_container_registry.this.id
 
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+#   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  dynamic "enabled_log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.acr.log_category_types
-    content {
-      category = enabled_log.key
-      retention_policy {
-        days = 30
-        enabled = true
-      }
-    }
-  }
+#   dynamic "enabled_log" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.acr.log_category_types
+#     content {
+#       category = enabled_log.key
+#       retention_policy {
+#         days = 30
+#         enabled = true
+#       }
+#     }
+#   }
 
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.acr.metrics
-    content {
-      category = metric.key
-      retention_policy {
-        days = 30
-        enabled =true
-      }
-    }
-  }
-}
+#   dynamic "metric" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.acr.metrics
+#     content {
+#       category = metric.key
+#       retention_policy {
+#         days = 30
+#         enabled =true
+#       }
+#     }
+#   }
+# }
 
 resource "azurerm_key_vault" "this" {
   name                        = substr("kv-${local.scope}", 0, 23)
@@ -175,38 +175,38 @@ resource "azurerm_private_endpoint" "kv" {
   tags = var.tags
 }
 
-data "azurerm_monitor_diagnostic_categories" "kv" {
-  resource_id = azurerm_key_vault.this.id
-}
+# data "azurerm_monitor_diagnostic_categories" "kv" {
+#   resource_id = azurerm_key_vault.this.id
+# }
 
-resource "azurerm_monitor_diagnostic_setting" "kv" {
-  name = azurerm_key_vault.this.name
-  target_resource_id = azurerm_key_vault.this.id
+# resource "azurerm_monitor_diagnostic_setting" "kv" {
+#   name = azurerm_key_vault.this.name
+#   target_resource_id = azurerm_key_vault.this.id
 
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+#   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  dynamic "enabled_log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.kv.log_category_types
-    content {
-      category = enabled_log.key
-      retention_policy {
-        days = 30
-        enabled = true
-      }
-    }
-  }
+#   dynamic "enabled_log" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.kv.log_category_types
+#     content {
+#       category = enabled_log.key
+#       retention_policy {
+#         days = 30
+#         enabled = true
+#       }
+#     }
+#   }
 
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.kv.metrics
-    content {
-      category = metric.key
-      retention_policy {
-        days = 30
-        enabled =true
-      }
-    }
-  }
-}
+#   dynamic "metric" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.kv.metrics
+#     content {
+#       category = metric.key
+#       retention_policy {
+#         days = 30
+#         enabled =true
+#       }
+#     }
+#   }
+# }
 
 module "application_gateway" {
   source = "../application_gateway"
@@ -279,38 +279,38 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 }
 
-data "azurerm_monitor_diagnostic_categories" "aks" {
-  resource_id = azurerm_kubernetes_cluster.this.id
-}
+# data "azurerm_monitor_diagnostic_categories" "aks" {
+#   resource_id = azurerm_kubernetes_cluster.this.id
+# }
 
-resource "azurerm_monitor_diagnostic_setting" "this" {
-  name = azurerm_kubernetes_cluster.this.name
-  target_resource_id = azurerm_kubernetes_cluster.this.id
+# resource "azurerm_monitor_diagnostic_setting" "this" {
+#   name = azurerm_kubernetes_cluster.this.name
+#   target_resource_id = azurerm_kubernetes_cluster.this.id
 
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+#   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  dynamic "enabled_log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.aks.log_category_types
-    content {
-      category = enabled_log.key
-      retention_policy {
-        days = 30
-        enabled = true
-      }
-    }
-  }
+#   dynamic "enabled_log" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.aks.log_category_types
+#     content {
+#       category = enabled_log.key
+#       retention_policy {
+#         days = 30
+#         enabled = true
+#       }
+#     }
+#   }
 
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.aks.metrics
-    content {
-      category = metric.key
-      retention_policy {
-        days = 30
-        enabled =true
-      }
-    }
-  }
-}
+#   dynamic "metric" {
+#     for_each = data.azurerm_monitor_diagnostic_categories.aks.metrics
+#     content {
+#       category = metric.key
+#       retention_policy {
+#         days = 30
+#         enabled =true
+#       }
+#     }
+#   }
+# }
 
 resource "azurerm_key_vault_access_policy" "aks_keyvault_policy" {
   key_vault_id = azurerm_key_vault.this.id
