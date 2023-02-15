@@ -31,3 +31,9 @@ variable "address_space" {
     description = "Address space to be allocated for the virtual network"
     default = ["10.0.0.0/16"]
 }
+
+variable "bastion_host_address_space" {
+    type = list(string)
+    description = "Address space to be allocated for bastion hosts"
+    default = ["10.0.2.0/26"]
+}

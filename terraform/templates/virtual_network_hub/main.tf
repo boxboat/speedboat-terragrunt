@@ -92,3 +92,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
   private_dns_zone_name = azurerm_private_dns_zone.kv-dns.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
+
+resource "azurerm_subnet" "bastionSubnet" {
+  name                                             = "AzureBastionSubnet"
+  resource_group_name                              = azurerm_virtual_network.this.resource_group_name
+  virtual_network_name                             = azurerm_virtual_network.this.name
+  address_prefixes                                 = var.bastion_host_address_space
+}
