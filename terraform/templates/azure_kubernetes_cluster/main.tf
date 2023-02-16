@@ -17,13 +17,13 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  name                = "law-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
+# resource "azurerm_log_analytics_workspace" "this" {
+#   name                = "law-${local.scope}"
+#   resource_group_name = azurerm_resource_group.this.name
+#   location            = azurerm_resource_group.this.location
+#   sku                 = "PerGB2018"
+#   retention_in_days   = 30
+# }
 
 module "spoke_virtual_network" {
   source = "../virtual_network_spoke"
@@ -35,7 +35,7 @@ module "spoke_virtual_network" {
   virtual_network_hub_name = var.virtual_network_hub_name
   virtual_network_hub_resource_group_name = var.virtual_network_hub_resource_group_name
   virtual_network_hub_id = var.virtual_network_hub_id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  # log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 resource "azurerm_subnet" "appgw" {
@@ -215,7 +215,7 @@ module "application_gateway" {
   scope = local.scope
   subnet_id = azurerm_subnet.appgw.id
   virtual_network_name = module.spoke_virtual_network.virtual_network.name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  # log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 resource "azurerm_kubernetes_cluster" "this" {
@@ -233,9 +233,9 @@ resource "azurerm_kubernetes_cluster" "this" {
     gateway_id = module.application_gateway.application_gateway.id
   }
 
-  oms_agent {
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
-  }
+  # oms_agent {
+  #   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  # }
 
   default_node_pool {
     name            = "defaultpool"
