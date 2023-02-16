@@ -15,13 +15,13 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  name                = "law-${local.scope}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
+# resource "azurerm_log_analytics_workspace" "this" {
+#   name                = "law-${local.scope}"
+#   resource_group_name = azurerm_resource_group.this.name
+#   location            = azurerm_resource_group.this.location
+#   sku                 = "PerGB2018"
+#   retention_in_days   = 30
+# }
 
 resource "azurerm_virtual_network" "this" {
   name                = "vnet-${var.location}-${local.scope}"

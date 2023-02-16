@@ -26,4 +26,5 @@ variable "scope" {
 variable "log_analytics_workspace_id" {
     type = string
     description = "Id of log analytics workspace to send logs to."
+    default = null
 }
